@@ -92,21 +92,20 @@ class Animate(Scene):
         # area_start = an.get_graph_label(sin_graph, "x=0", x_val=0, direction=UL, color=WHITE)
         # area_end = an.get_graph_label(sin_graph, "x=2\pi", x_val=TAU, direction=UR, color=WHITE)
         self.play(*[FadeIn(x) for x in [area_start, area_end]])
-        pos_dx_list = [0.4, 0.25, 0.1, 0.05, 0.005]
-        neg_dx_list = [0.4, 0.25, 0.1, 0.05, 0.005]
+        dx_list = [0.4, 0.25, 0.1, 0.05, 0.005]
         stroke_list = [0.4, 0.2, 0.1, 0.05, 0.0]
         pos_area_list = VGroup(
             *[
                 an.get_riemann_rectangles(
                     sin_graph,
                     x_range=[0, PI],
-                    dx=pos_dx_list[i],
+                    dx=dx_list[i],
                     stroke_width=stroke_list[i],
                     stroke_color=BLACK,
                     fill_opacity=0.7,
-                    color=[BLUE, GREEN]
+                    color=[ORANGE, PURPLE]
                 )
-                for i in range(0, len(pos_dx_list))
+                for i in range(0, len(dx_list))
             ]
         )
         neg_area_list = VGroup(
@@ -114,13 +113,12 @@ class Animate(Scene):
                 an.get_riemann_rectangles(
                     sin_graph,
                     x_range=[PI, 2 * PI],
-                    dx=pos_dx_list[i],
+                    dx=dx_list[i],
                     stroke_width=stroke_list[i],
                     stroke_color=BLACK,
-                    fill_opacity=0.7,
-                    color=[ORANGE, PURPLE]
+                    fill_opacity=0.7
                 )
-                for i in range(0, len(neg_dx_list))
+                for i in range(0, len(dx_list))
             ]
         )
         pa = pos_area_list[-1]
@@ -133,7 +131,7 @@ class Animate(Scene):
         for txt in integral_area:
             self.play(Write(txt))
             self.wait()
-        for i in range(len(pos_dx_list) - 2, -1, -1):
+        for i in range(len(dx_list) - 2, -1, -1):
             new_pa = pos_area_list[i]
             new_na = neg_area_list[i]
             self.play(Transform(pa, new_pa), Transform(na, new_na))
@@ -141,5 +139,89 @@ class Animate(Scene):
 
         self.play(FadeOut(integral_area), run_time=2)
 
-        # pos neg area
-        
+        # pos area expl
+        area_pos = pos_area_list[0]
+        rect = area_pos[1].copy()
+        rect.shift(2 * (2 * RIGHT + UP))
+        self.play(TransformFromCopy(area_pos[1], rect))
+        dx_brace = Brace(rect, DOWN).set_stroke(width=0.2)
+        f_brace = Brace(rect, LEFT).set_stroke(width=0.2)
+        dx_brace_text = dx_brace.get_text(
+            r"$dx$"
+        ).scale(0.8)
+        f_brace_text = f_brace.get_text(
+            r"$f(x)$", buff=0.1
+        ).scale(0.8)
+        self.play(FadeIn(dx_brace), FadeIn(f_brace))
+        self.play(Write(dx_brace_text), Write(f_brace_text))
+        f_pos_tex = Tex(
+            r"$f(x)>0$"
+        ).scale(0.8).move_to(f_brace_text).shift(LEFT / 4)
+        dx_pos_tex = Tex(
+            r"$dx>0$"
+        ).scale(0.8).move_to(dx_brace_text)
+        self.play(
+            ReplacementTransform(f_brace_text, f_pos_tex),
+            ReplacementTransform(dx_brace_text, dx_pos_tex)
+        )
+        small_area = Tex(
+            r"$dA = f(x)dx > 0$"
+        ).scale(0.8).next_to(rect, RIGHT)
+        self.play(ShowCreationThenFadeOut(SurroundingRectangle(rect, color=BLUE, buff=0)))
+        self.play(Write(small_area))
+        to_remove = [f_brace, dx_brace, f_pos_tex, dx_pos_tex, small_area, rect]
+        self.play(*[FadeOut(x) for x in to_remove])
+
+        # neg area expl
+        area_neg = neg_area_list[0]
+        rect = area_neg[2].copy()
+        rect.shift(2.5 * UP)
+        self.play(TransformFromCopy(area_neg[2], rect))
+        dx_brace = Brace(rect, DOWN).set_stroke(width=0.2)
+        f_brace = Brace(rect, LEFT).set_stroke(width=0.2)
+        dx_brace_text = dx_brace.get_text(
+            r"$dx$"
+        ).scale(0.8)
+        f_brace_text = f_brace.get_text(
+            r"$f(x)$", buff=0.1
+        ).scale(0.8)
+        self.play(FadeIn(dx_brace), FadeIn(f_brace))
+        self.play(Write(dx_brace_text), Write(f_brace_text))
+        f_pos_tex = Tex(
+            r"$f(x)<0$"
+        ).scale(0.8).move_to(f_brace_text).shift(LEFT / 4)
+        dx_pos_tex = Tex(
+            r"$dx>0$"
+        ).scale(0.8).move_to(dx_brace_text)
+        self.play(
+            ReplacementTransform(f_brace_text, f_pos_tex),
+            ReplacementTransform(dx_brace_text, dx_pos_tex)
+        )
+        small_area = Tex(
+            r"$dA = f(x)dx < 0$"
+        ).scale(0.8).next_to(rect, RIGHT)
+        self.play(ShowCreationThenFadeOut(SurroundingRectangle(rect, color=BLUE, buff=0)))
+        self.play(Write(small_area))
+        to_remove = [f_brace, dx_brace, f_pos_tex, dx_pos_tex, small_area, rect]
+        self.play(*[FadeOut(x) for x in to_remove])
+
+        # show cancelling
+        area_pos_shift = area_pos.copy()
+        area_neg_shift = area_neg.copy()
+        area_pos_shift.shift(5 * RIGHT + 2.5 * UP)
+        area_neg_shift.next_to(area_pos_shift, DOWN, buff=0)
+        self.play(TransformFromCopy(area_pos, area_pos_shift))
+        self.play(TransformFromCopy(area_neg, area_neg_shift))
+        for i in range(len(area_pos_shift)):
+            if i % 2 == 0:
+                a = area_pos_shift[i]
+                b = area_neg_shift[i]
+            else:
+                a = area_neg_shift[i]
+                b = area_pos_shift[i]
+            self.play(a.animate.move_to(b), run_time=0.5)
+            self.play(FadeOut(a), FadeOut(b), run_time=0.5)
+        zero_area_tex = MathTex(r'\int_0^{2\pi}\sin{x}\,dx=0').to_corner(UR, buff=0.5)
+        riemann_grp = VGroup(pos_area_list, neg_area_list)
+        self.play(ReplacementTransform(riemann_grp, zero_area_tex))
+        self.play(ShowCreationThenFadeOut(SurroundingRectangle(zero_area_tex, color=BLUE)))
