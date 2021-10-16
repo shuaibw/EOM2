@@ -92,37 +92,54 @@ class Animate(Scene):
         # area_start = an.get_graph_label(sin_graph, "x=0", x_val=0, direction=UL, color=WHITE)
         # area_end = an.get_graph_label(sin_graph, "x=2\pi", x_val=TAU, direction=UR, color=WHITE)
         self.play(*[FadeIn(x) for x in [area_start, area_end]])
-        pos_dx_list = [1, 0.5, 0.25, 0.1, 0.05, 0.01, 0.005]
-        neg_dx_list = [1, 0.5, 0.25, 0.1, 0.05, 0.01, 0.005]
+        pos_dx_list = [0.4, 0.25, 0.1, 0.05, 0.005]
+        neg_dx_list = [0.4, 0.25, 0.1, 0.05, 0.005]
+        stroke_list = [0.4, 0.2, 0.1, 0.05, 0.0]
         pos_area_list = VGroup(
             *[
                 an.get_riemann_rectangles(
                     sin_graph,
                     x_range=[0, PI],
-                    dx=i,
-                    stroke_width=0.0,
+                    dx=pos_dx_list[i],
+                    stroke_width=stroke_list[i],
+                    stroke_color=BLACK,
+                    fill_opacity=0.7,
                     color=[BLUE, GREEN]
                 )
-                for i in pos_dx_list
+                for i in range(0, len(pos_dx_list))
             ]
         )
         neg_area_list = VGroup(
             *[
                 an.get_riemann_rectangles(
                     sin_graph,
-                    x_range=[PI, 2*PI],
-                    dx=i,
-                    stroke_width=0.0,
+                    x_range=[PI, 2 * PI],
+                    dx=pos_dx_list[i],
+                    stroke_width=stroke_list[i],
+                    stroke_color=BLACK,
+                    fill_opacity=0.7,
                     color=[ORANGE, PURPLE]
                 )
-                for i in neg_dx_list
+                for i in range(0, len(neg_dx_list))
             ]
         )
-        self.play(Create(pos_area_list[-1]), run_time=1.5)
-        self.play(Create(neg_area_list[-1]), run_time=1.5)
+        pa = pos_area_list[-1]
+        na = neg_area_list[-1]
+        self.play(Create(pa), run_time=1.5)
+        self.play(Create(na), run_time=1.5)
         integral_area = MathTex(r'\text{Area} &= \int_0^{2\pi}\sin{x}\,dx\\',
                                 r' &= \left[-\cos{x}\right]_0^{2\pi} \\',
-                                r' &= 0', font_size=28).to_corner(UR, buff=0.6)
+                                r' &= 0', font_size=35).to_corner(UR, buff=0.6)
         for txt in integral_area:
             self.play(Write(txt))
             self.wait()
+        for i in range(len(pos_dx_list) - 2, -1, -1):
+            new_pa = pos_area_list[i]
+            new_na = neg_area_list[i]
+            self.play(Transform(pa, new_pa), Transform(na, new_na))
+            self.wait()
+
+        self.play(FadeOut(integral_area), run_time=2)
+
+        # pos neg area
+        
