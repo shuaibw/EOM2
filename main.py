@@ -225,3 +225,91 @@ class Animate(Scene):
         riemann_grp = VGroup(pos_area_list, neg_area_list)
         self.play(ReplacementTransform(riemann_grp, zero_area_tex))
         self.play(ShowCreationThenFadeOut(SurroundingRectangle(zero_area_tex, color=BLUE)))
+        self.play(*[Uncreate(x) for x in [area_start, area_end, zero_area_tex]])
+        self.remove(pos_area_list, neg_area_list)
+
+        # Non zero error area
+        axes = Axes(
+            x_range=[-4, 4, 1],
+            y_range=[-2, 5, 1],
+            x_length=8,
+            y_length=7,
+            axis_config={
+                "color": WHITE,
+                "stroke_width": 2,
+                "tick_size": 0.04,
+                "include_tip": False
+            },
+            # x_axis_config={"numbers_to_include": np.arange(-3, 10, 1)},
+            # y_axis_config={"numbers_to_include": np.arange(-3, 5, 1)},
+        )
+        axes.to_edge(LEFT, buff=0.3)
+        poly_graph2 = axes.get_graph(
+            lambda x: 2 / 5 * (x ** 2 - 4), [-4, 4], color=GREEN_C
+        )
+        self.play(ReplacementTransform(an, axes), ReplacementTransform(sin_graph, poly_graph2), run_time=2)
+        area_start = MathTex('0', font_size=25).next_to(axes.c2p(-0.2, 0), DOWN)
+        area_end = MathTex('4', font_size=25).next_to(axes.c2p(4, 0), DOWN)
+        self.play(*[FadeIn(x) for x in [area_start, area_end]])
+        dx_list = [0.4, 0.25, 0.1, 0.05, 0.005]
+        stroke_list = [0.4, 0.2, 0.1, 0.05, 0.0]
+        pos_area_list = VGroup(
+            *[
+                axes.get_riemann_rectangles(
+                    poly_graph2,
+                    x_range=[2, 4],
+                    dx=dx_list[i],
+                    stroke_width=stroke_list[i],
+                    stroke_color=BLACK,
+                    fill_opacity=0.7,
+                    color=[GREEN, BLUE]
+                )
+                for i in range(0, len(dx_list))
+            ]
+        )
+        neg_area_list = VGroup(
+            *[
+                axes.get_riemann_rectangles(
+                    poly_graph2,
+                    x_range=[0, 2],
+                    dx=dx_list[i],
+                    stroke_width=stroke_list[i],
+                    stroke_color=BLACK,
+                    fill_opacity=0.7
+                )
+                for i in range(0, len(dx_list))
+            ]
+        )
+        pa = pos_area_list[-1]
+        na = neg_area_list[-1]
+        self.play(Create(na), run_time=1.5)
+        self.play(Create(pa), run_time=1.5)
+        integral_area = MathTex(r'\text{Area} &= \int_0^{4}\frac{2}{5}(x^2-4)\,dx\\',
+                                r' &= \frac{2}{5}\left[\frac{x^3}{3}-4x\right]_0^{4} \\',
+                                r' &= ', r'\frac{32}{15}', font_size=35).to_corner(UR, buff=0.6)
+        for txt in integral_area:
+            self.play(Write(txt))
+            self.wait()
+        self.play(ShowCreationThenFadeOut(SurroundingRectangle(integral_area[3], color=GREEN)))
+        for i in range(len(dx_list) - 2, -1, -1):
+            new_pa = pos_area_list[i]
+            new_na = neg_area_list[i]
+            self.play(Transform(pa, new_pa), Transform(na, new_na))
+            self.wait()
+
+        self.play(FadeOut(integral_area[1:]))
+        pa_shift = pa.copy()
+        na_shift = na.copy()
+        pa_shift.shift(5 * RIGHT)
+        na_shift.next_to(pa_shift, DOWN, buff=0)
+        self.play(TransformFromCopy(pa, pa_shift))
+        self.play(TransformFromCopy(na, na_shift))
+        self.play(*[na_shift[i].animate.align_to(pa_shift[i], DOWN) for i in range(len(pa_shift))])
+        self.play(*[FadeOut(x) for x in na_shift], pa_shift.animate.stretch(0.5, 1).shift(DOWN))
+        area_surround = SurroundingRectangle(pa_shift, color=BLUE)
+        aro = Arrow(start=area_surround.get_corner(UR), end=integral_area[0].get_bottom(), color=YELLOW,
+                    tip_shape=ArrowCircleFilledTip, stroke_width=1.3, tip_length=0.2)
+        self.play(Create(area_surround))
+        self.play(ShowCreationThenFadeOut(aro))
+        new_tex = MathTex(r'\text{Area} = \frac{32}{15}}', font_size=35).move_to(integral_area[0])
+        self.play(ReplacementTransform(integral_area[0], new_tex), Uncreate(area_surround))
