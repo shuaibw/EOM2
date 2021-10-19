@@ -247,7 +247,10 @@ class Animate(Scene):
         poly_graph2 = axes.get_graph(
             lambda x: 2 / 5 * (x ** 2 - 4), [-4, 4], color=GREEN_C
         )
-        self.play(ReplacementTransform(an, axes), ReplacementTransform(sin_graph, poly_graph2), run_time=2)
+        pg2_label = axes.get_graph_label(poly_graph2, r"f(x) = \frac{2}{5}(x^2-2)", x_val=-4, direction=UP,
+                                         color=BLUE).scale(0.7)
+        self.play(ReplacementTransform(an, axes), ReplacementTransform(sin_graph, poly_graph2), Write(pg2_label),
+                  run_time=2)
         area_start = MathTex('0', font_size=25).next_to(axes.c2p(-0.2, 0), DOWN)
         area_end = MathTex('4', font_size=25).next_to(axes.c2p(4, 0), DOWN)
         self.play(*[FadeIn(x) for x in [area_start, area_end]])
@@ -313,3 +316,110 @@ class Animate(Scene):
         self.play(ShowCreationThenFadeOut(aro))
         new_tex = MathTex(r'\text{Area} = \frac{32}{15}}', font_size=35).move_to(integral_area[0])
         self.play(ReplacementTransform(integral_area[0], new_tex), Uncreate(area_surround))
+        self.play(*[FadeOut(i) for i in [pa_shift, new_tex]])
+        _a = axes.get_area(poly_graph2, x_range=(0, 2), color=[ORANGE, PURPLE], opacity=0.7)
+        _b = axes.get_area(poly_graph2, x_range=(2, 4), color=[GREEN, BLUE], opacity=0.7)
+        self.play(ReplacementTransform(na, _a),
+                  ReplacementTransform(pa, _b),
+                  run_time=2)
+
+        # Now explain what to do
+        find_intersect_tex = MathTex(r"\frac{2}{5}(x^2-4) &= 0\\",
+                                     r"x&=", r"+2", r",-2",
+                                     font_size=35).to_corner(UR, buff=0.6)
+        self.play(ReplacementTransform(pg2_label, find_intersect_tex[0]))
+        for x in find_intersect_tex[1:]:
+            self.play(Write(x))
+        intersect_rect = SurroundingRectangle(find_intersect_tex[2], color=BLUE)
+        self.play(Create(intersect_rect))
+        x_intersect_dot = Dot(point=axes.c2p(2, 0), color=RED)
+        self.play(ReplacementTransform(intersect_rect, x_intersect_dot), FadeOut(find_intersect_tex))
+        pg2_na_brace = Brace(na, direction=UP, color=PURPLE)
+        self.play(FadeIn(pg2_na_brace))
+        big_minus = MathTex("-", color=BLUE, stroke_width=5).move_to(axes.c2p(0.8, -0.8))
+        big_plus = MathTex("+", color=ORANGE, stroke_width=5).move_to(axes.c2p(3.5, 1.6))
+        pg2_area_tex = MathTex(r"A_1 &= \int_0^2 f(x)\,dx",
+                               r"= -\frac{32}{15}\\",
+                               r"A_2 &= \int_2^4 f(x)\,dx",
+                               r"=\frac{64}{15}\\",
+                               r"\text{Area} &= |A_1| + |A_2|\\",
+                               r"&=\frac{32}{15} + \frac{64}{15}\\",
+                               r"&=\frac{32}{5}",
+                               font_size=35).to_corner(UR, buff=0.6)
+        self.play(ReplacementTransform(pg2_na_brace, pg2_area_tex[0]), FadeIn(big_minus))
+        self.wait()
+        self.play(Write(pg2_area_tex[1]))
+        pg2_pa_brace = Brace(pa, direction=DOWN, color=GREEN)
+        self.play(FadeIn(pg2_pa_brace))
+        self.play(ReplacementTransform(pg2_pa_brace, pg2_area_tex[2]), FadeIn(big_plus))
+        self.wait()
+        for x in pg2_area_tex[3:]:
+            self.play(Write(x))
+            self.wait()
+        poly_group = [_a, _b, x_intersect_dot, big_plus, big_minus, area_start, area_end, pg2_area_tex]
+        self.play(*[FadeOut(x) for x in poly_group])
+
+        # Now sin area
+        an = Axes(
+            x_range=[-1, 7, 1],
+            y_range=[-2.5, 2.5, 1],
+            x_length=8,
+            y_length=5,
+            axis_config={
+                "color": WHITE,
+                "stroke_width": 2,
+                "tick_size": 0.04,
+                "include_tip": False
+            },
+            # x_axis_config={"numbers_to_include": np.arange(-3, 10, 1)},
+            # y_axis_config={"numbers_to_include": np.arange(-3, 5, 1)},
+        )
+        an.to_edge(LEFT, buff=0.6)
+        area_start = Tex('$0$', font_size=25).next_to(an.c2p(-0.2, 0), DOWN)
+        area_mid = Tex('$\pi$', font_size=25).next_to(an.c2p(PI, 0), DOWN)
+        area_end = Tex('$2\pi$', font_size=25).next_to(an.c2p(TAU, 0), DOWN)
+        sin_graph = an.get_graph(lambda x: np.sin(x), x_range=[0, TAU], color=BLUE)
+        sg_label = an.get_graph_label(sin_graph, label=r'f(x)=\sin(x)', color=GREEN, x_val=1).scale(0.7).shift(UP)
+        self.play(ReplacementTransform(axes, an), ReplacementTransform(poly_graph2, sin_graph))
+        self.play(Write(sg_label))
+        self.play(*[FadeIn(x) for x in [area_start, area_mid, area_end]])
+        sg_pa = an.get_area(sin_graph, (0, PI), color=[GREEN, BLUE], opacity=0.7)
+        sg_na = an.get_area(sin_graph, (PI, 2 * PI), color=[ORANGE, PURPLE], opacity=0.7)
+        sg_pa_br = Brace(sg_pa, DOWN, color=BLUE)
+        sg_na_br = Brace(sg_na, UP, color=ORANGE)
+        self.play(FadeIn(sg_pa), FadeIn(sg_na))
+        sg_area_tex = MathTex(r"A_1 &= \int_0^{\pi} f(x)\,dx",
+                              r"= 2\\",
+                              r"A_2 &= \int_{\pi}^{2\pi} f(x)\,dx",
+                              r"=-2\\",
+                              r"\text{Area} &= |A_1| + |A_2|\\",
+                              r"&=2 + 2\\",
+                              r"&=4",
+                              font_size=35).to_corner(UR, buff=0.6)
+        self.play(FadeIn(sg_pa_br))
+        self.wait()
+        self.play(ReplacementTransform(sg_pa_br, sg_area_tex[0]))
+        self.play(Write(sg_area_tex[1]), FadeIn(big_plus.move_to(an.c2p(PI / 2, 0.3))))
+        self.play(FadeIn(sg_na_br))
+        self.wait()
+        self.play(ReplacementTransform(sg_na_br, sg_area_tex[2]), FadeIn(big_minus.move_to(an.c2p(3 * PI / 2, -0.3))))
+        self.play(Write(sg_area_tex[3]))
+        for x in sg_area_tex[3:]:
+            self.play(Write(x))
+            self.wait()
+        self.wait()
+        to_remove = [area_start, area_end, area_mid, sg_area_tex]
+        self.play(*[FadeOut(x) for x in to_remove])
+
+        # evil rotation hack
+        rot_grp = VGroup(sin_graph, an, sg_pa, sg_na, big_minus, big_plus)
+        self.play(Rotate(rot_grp, PI / 2), FadeOut(sg_label))
+        bm_op = big_minus.get_center()
+        self.play(big_minus.animate.move_to(big_plus), big_plus.animate.move_to(bm_op),big_minus.animate.rotate(PI/2))
+        self.wait()
+        self.play(*[FadeOut(x) for x in self.mobjects])
+        cya = Text("Thank you for watching!", font_size=35).set_color_by_gradient(BLUE, GREEN, GOLD)
+        cya1 = Text("Voiceover by: Kazi Rakibul Hasan", font_size=35).set_color_by_gradient(GOLD, ORANGE).next_to(cya, DOWN)
+        cya2 = Text("Animated by: Anwarul Bashir Shuaib", font_size=35).set_color_by_gradient(ORANGE, PURPLE).next_to(cya1, DOWN)
+        self.play(Write(VGroup(cya, cya1, cya2).move_to(ORIGIN)))
+
