@@ -4,6 +4,9 @@ from manim import *
 
 class Animate(Scene):
     def construct(self):
+        # intro
+
+        # main
         axes = Axes(
             x_range=[-3, 10, 1],
             y_range=[-1, 7, 1],
@@ -26,7 +29,7 @@ class Animate(Scene):
                 "include_tip": False
             },
         )
-        self.play(Create(axes), lag_ratio=0.5, run_time=3)
+        self.play(Create(axes), lag_ratio=0.1, run_time=3)
 
         def poly_func(x):
             return 0.07 * x ** 3 - 0.45 * x ** 2 + 0.25 * x + 2.87
@@ -141,9 +144,9 @@ class Animate(Scene):
 
         # pos area expl
         area_pos = pos_area_list[0]
-        rect = area_pos[1].copy()
+        rect = area_pos[3].copy()
         rect.shift(2 * (2 * RIGHT + UP))
-        self.play(TransformFromCopy(area_pos[1], rect))
+        self.play(TransformFromCopy(area_pos[3], rect))
         dx_brace = Brace(rect, DOWN).set_stroke(width=0.2)
         f_brace = Brace(rect, LEFT).set_stroke(width=0.2)
         dx_brace_text = dx_brace.get_text(
@@ -160,10 +163,22 @@ class Animate(Scene):
         dx_pos_tex = Tex(
             r"$dx>0$"
         ).scale(0.8).move_to(dx_brace_text)
+        dptc = dx_pos_tex.copy()
         self.play(
             ReplacementTransform(f_brace_text, f_pos_tex),
             ReplacementTransform(dx_brace_text, dx_pos_tex)
         )
+        why_pos = MathTex(r'dx = \frac{2\pi-0}{n}').scale(0.8).next_to(dx_brace, DOWN, buff=0.1)
+        dgtr = SurroundingRectangle(dx_pos_tex, color=GREEN)
+        self.play(Create(dgtr))
+        self.wait()
+        self.play(Uncreate(dgtr))
+        self.play(Transform(dx_pos_tex, why_pos))
+        num_of_rect = MathTex(r'n=\text{No. of rectangles}').scale(0.65).next_to(why_pos, RIGHT)
+        self.play(Write(num_of_rect))
+        self.play(FadeOut(num_of_rect))
+        self.wait()
+        self.play(Transform(dx_pos_tex, dptc))
         small_area = Tex(
             r"$dA = f(x)dx > 0$"
         ).scale(0.8).next_to(rect, RIGHT)
@@ -174,9 +189,9 @@ class Animate(Scene):
 
         # neg area expl
         area_neg = neg_area_list[0]
-        rect = area_neg[2].copy()
+        rect = area_neg[3].copy()
         rect.shift(2.5 * UP)
-        self.play(TransformFromCopy(area_neg[2], rect))
+        self.play(TransformFromCopy(area_neg[3], rect))
         dx_brace = Brace(rect, DOWN).set_stroke(width=0.2)
         f_brace = Brace(rect, LEFT).set_stroke(width=0.2)
         dx_brace_text = dx_brace.get_text(
@@ -225,7 +240,7 @@ class Animate(Scene):
         riemann_grp = VGroup(pos_area_list, neg_area_list)
         self.play(ReplacementTransform(riemann_grp, zero_area_tex))
         self.play(ShowCreationThenFadeOut(SurroundingRectangle(zero_area_tex, color=BLUE)))
-        self.play(*[Uncreate(x) for x in [area_start, area_end, zero_area_tex]])
+        self.play(*[Unwrite(x) for x in [area_start, area_end, zero_area_tex]])
         self.remove(pos_area_list, neg_area_list)
 
         # Non zero error area
@@ -415,11 +430,13 @@ class Animate(Scene):
         rot_grp = VGroup(sin_graph, an, sg_pa, sg_na, big_minus, big_plus)
         self.play(Rotate(rot_grp, PI / 2), FadeOut(sg_label))
         bm_op = big_minus.get_center()
-        self.play(big_minus.animate.move_to(big_plus), big_plus.animate.move_to(bm_op),big_minus.animate.rotate(PI/2))
+        self.play(Rotate(big_minus, PI / 2))
+        self.play(big_minus.animate.move_to(big_plus), big_plus.animate.move_to(bm_op))
         self.wait()
         self.play(*[FadeOut(x) for x in self.mobjects])
         cya = Text("Thank you for watching!", font_size=35).set_color_by_gradient(BLUE, GREEN, GOLD)
-        cya1 = Text("Voiceover by: Kazi Rakibul Hasan", font_size=35).set_color_by_gradient(GOLD, ORANGE).next_to(cya, DOWN)
-        cya2 = Text("Animated by: Anwarul Bashir Shuaib", font_size=35).set_color_by_gradient(ORANGE, PURPLE).next_to(cya1, DOWN)
+        cya1 = Text("Voiceover: Kazi Rakibul Hasan", font_size=35).set_color_by_gradient(GOLD, ORANGE).next_to(cya,
+                                                                                                               DOWN)
+        cya2 = Text("Animation: Anwarul Bashir Shuaib", font_size=35).set_color_by_gradient(ORANGE, PURPLE).next_to(
+            cya1, DOWN)
         self.play(Write(VGroup(cya, cya1, cya2).move_to(ORIGIN)))
-
