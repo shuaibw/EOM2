@@ -29,7 +29,7 @@ class Animate(Scene):
                 "include_tip": False
             },
         )
-        self.play(Create(axes), lag_ratio=0.1, run_time=3)
+        self.play(Create(axes), run_time=2)
 
         def poly_func(x):
             return 0.07 * x ** 3 - 0.45 * x ** 2 + 0.25 * x + 2.87
@@ -433,9 +433,31 @@ class Animate(Scene):
         self.play(Rotate(big_minus, PI / 2))
         self.play(big_minus.animate.move_to(big_plus), big_plus.animate.move_to(bm_op))
         self.wait()
+        x_fn_tex = MathTex(r'y=f(x)').scale(0.8).to_corner(UR, buff=0.7).shift(LEFT)
+        x_int_tex = MathTex(r'\text{Area} = ', r'\int_a^b f(x)\,dx').scale(0.8).next_to(x_fn_tex, DOWN)
+        y_fn_tex = MathTex(r'x=f(y)').scale(0.8).move_to(x_fn_tex)
+        y_int_tex = MathTex(r'\text{Area} = ', r'\int_a^b f(y)\,dy').scale(0.8).move_to(x_int_tex)
+        self.play(Write(x_fn_tex))
+        self.wait()
+        self.play(Write(x_int_tex))
+        self.play(ReplacementTransform(x_fn_tex, y_fn_tex))
+        self.wait()
+        self.play(ReplacementTransform(x_int_tex, y_int_tex))
+        x_neg = MathTex(r'x<0\\', r'\Rightarrow f(y)<0\\', r'\Rightarrow dA<0').move_to(an.c2p(2, 3)).scale(0.8)
+        x_pos = MathTex(r'x>0\\', r'\Rightarrow f(y)>0\\', r'\Rightarrow dA>0').move_to(an.c2p(5, -3)).scale(0.8)
+        for x in x_pos:
+            self.play(Write(x))
+            self.wait()
+        self.play(ShowCreationThenFadeOut(SurroundingRectangle(big_plus, color=BLUE)))
+        for x in x_neg:
+            self.play(Write(x))
+            self.wait()
+        self.play(ShowCreationThenFadeOut(SurroundingRectangle(big_minus, color=ORANGE)))
+        self.play(y_int_tex.animate.move_to(ORIGIN))
+        self.play(ShowCreationThenFadeOut(SurroundingRectangle(y_int_tex, color=BLUE)))
         self.play(*[FadeOut(x) for x in self.mobjects])
         cya = Text("Thank you for watching!", font_size=35).set_color_by_gradient(BLUE, GREEN, GOLD)
-        cya1 = Text("Voiceover: Kazi Rakibul Hasan", font_size=35).set_color_by_gradient(GOLD, ORANGE).next_to(cya,
+        cya1 = Text("Instructor: Kazi Rakibul Hasan", font_size=35).set_color_by_gradient(GOLD, ORANGE).next_to(cya,
                                                                                                                DOWN)
         cya2 = Text("Animation: Anwarul Bashir Shuaib", font_size=35).set_color_by_gradient(ORANGE, PURPLE).next_to(
             cya1, DOWN)
