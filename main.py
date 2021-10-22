@@ -164,10 +164,7 @@ class Animate(Scene):
             r"$dx>0$"
         ).scale(0.8).move_to(dx_brace_text)
         dptc = dx_pos_tex.copy()
-        self.play(
-            ReplacementTransform(f_brace_text, f_pos_tex),
-            ReplacementTransform(dx_brace_text, dx_pos_tex)
-        )
+        self.play(ReplacementTransform(dx_brace_text, dx_pos_tex))
         why_pos = MathTex(r'dx = \frac{2\pi-0}{n}').scale(0.8).next_to(dx_brace, DOWN, buff=0.1)
         dgtr = SurroundingRectangle(dx_pos_tex, color=GREEN)
         self.play(Create(dgtr))
@@ -179,6 +176,20 @@ class Animate(Scene):
         self.play(FadeOut(num_of_rect))
         self.wait()
         self.play(Transform(dx_pos_tex, dptc))
+        # add lines
+        ln = Line(pos_area_list[0][1].get_corner(DL), pos_area_list[0][1].get_corner(UL), color=BLUE)
+        self.play(Create(ln))
+        for x in pos_area_list[0][2:5]:
+            _ln = Line(x.get_corner(DL), x.get_corner(UL), color=BLUE)
+            self.play(Transform(ln, _ln))
+        for x in neg_area_list[0][1:5]:
+            _ln = Line(x.get_corner(UL), x.get_corner(DL), color=BLUE)
+            self.play(Transform(ln, _ln))
+        self.play(Uncreate(ln))
+        self.play(ReplacementTransform(f_brace_text, f_pos_tex))
+        self.play(ShowCreationThenFadeOut(
+            Line(pos_area_list[0][3].get_corner(DL), pos_area_list[0][3].get_corner(UL), color=BLUE)
+        ))
         small_area = Tex(
             r"$dA = f(x)dx > 0$"
         ).scale(0.8).next_to(rect, RIGHT)
@@ -212,6 +223,9 @@ class Animate(Scene):
             ReplacementTransform(f_brace_text, f_pos_tex),
             ReplacementTransform(dx_brace_text, dx_pos_tex)
         )
+        self.play(ShowCreationThenFadeOut(
+            Line(neg_area_list[0][3].get_corner(DL), neg_area_list[0][3].get_corner(UL), color=BLUE)
+        ))
         small_area = Tex(
             r"$dA = f(x)dx < 0$"
         ).scale(0.8).next_to(rect, RIGHT)
@@ -345,6 +359,8 @@ class Animate(Scene):
         self.play(ReplacementTransform(pg2_label, find_intersect_tex[0]))
         for x in find_intersect_tex[1:]:
             self.play(Write(x))
+        m2 = MathTex(r'-2', font_size=25).next_to(axes.c2p(-2, 0), DOWN)
+        p2 = MathTex(r'2', font_size=25).next_to(axes.c2p(2, 0), DOWN)
         intersect_rect = SurroundingRectangle(find_intersect_tex[2], color=BLUE)
         self.play(Create(intersect_rect))
         x_intersect_dot = Dot(point=axes.c2p(2, 0), color=RED)
@@ -371,7 +387,7 @@ class Animate(Scene):
         for x in pg2_area_tex[3:]:
             self.play(Write(x))
             self.wait()
-        poly_group = [_a, _b, x_intersect_dot, big_plus, big_minus, area_start, area_end, pg2_area_tex]
+        poly_group = [_a, _b, x_intersect_dot, big_plus, big_minus, area_start, area_end, pg2_area_tex, m2, p2]
         self.play(*[FadeOut(x) for x in poly_group])
 
         # Now sin area
@@ -458,7 +474,7 @@ class Animate(Scene):
         self.play(*[FadeOut(x) for x in self.mobjects])
         cya = Text("Thank you for watching!", font_size=35).set_color_by_gradient(BLUE, GREEN, GOLD)
         cya1 = Text("Instructor: Kazi Rakibul Hasan", font_size=35).set_color_by_gradient(GOLD, ORANGE).next_to(cya,
-                                                                                                               DOWN)
+                                                                                                                DOWN)
         cya2 = Text("Animation: Anwarul Bashir Shuaib", font_size=35).set_color_by_gradient(ORANGE, PURPLE).next_to(
             cya1, DOWN)
         self.play(Write(VGroup(cya, cya1, cya2).move_to(ORIGIN)))
