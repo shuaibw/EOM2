@@ -361,10 +361,11 @@ class Animate(Scene):
             self.play(Write(x))
         m2 = MathTex(r'-2', font_size=25).next_to(axes.c2p(-2, 0), DOWN)
         p2 = MathTex(r'2', font_size=25).next_to(axes.c2p(2, 0), DOWN)
+        self.play(Write(m2), Write(p2))
         intersect_rect = SurroundingRectangle(find_intersect_tex[2], color=BLUE)
         self.play(Create(intersect_rect))
         x_intersect_dot = Dot(point=axes.c2p(2, 0), color=RED)
-        self.play(ReplacementTransform(intersect_rect, x_intersect_dot), FadeOut(find_intersect_tex))
+        self.play(ReplacementTransform(intersect_rect, x_intersect_dot), FadeOut(find_intersect_tex), FadeOut(m2))
         pg2_na_brace = Brace(na, direction=UP, color=PURPLE)
         self.play(FadeIn(pg2_na_brace))
         big_minus = MathTex("-", color=BLUE, stroke_width=5).move_to(axes.c2p(0.8, -0.8))
@@ -373,7 +374,9 @@ class Animate(Scene):
                                r"= -\frac{32}{15}\\",
                                r"A_2 &= \int_2^4 f(x)\,dx",
                                r"=\frac{64}{15}\\",
-                               r"\text{Area} &= |A_1| + |A_2|\\",
+                               r"\text{Area} &=",
+                               r"A_1 + A_2",
+                               r"|A_1| + |A_2|\\",
                                r"&=\frac{32}{15} + \frac{64}{15}\\",
                                r"&=\frac{32}{5}",
                                font_size=35).to_corner(UR, buff=0.6)
@@ -384,10 +387,19 @@ class Animate(Scene):
         self.play(FadeIn(pg2_pa_brace))
         self.play(ReplacementTransform(pg2_pa_brace, pg2_area_tex[2]), FadeIn(big_plus))
         self.wait()
-        for x in pg2_area_tex[3:]:
+        self.play(Write(pg2_area_tex[3]))
+        self.play(Write(pg2_area_tex[4:6]))
+        xout = Line(
+            pg2_area_tex[5].get_left(), pg2_area_tex[5].get_right(), color=RED
+        )
+        self.play(Create(xout))
+        self.wait()
+        pg2_area_tex[6].move_to(pg2_area_tex[5]).shift(RIGHT / 7)
+        self.play(FadeOut(xout), ReplacementTransform(pg2_area_tex[5], pg2_area_tex[6]))
+        for x in pg2_area_tex[7:]:
             self.play(Write(x))
-            self.wait()
-        poly_group = [_a, _b, x_intersect_dot, big_plus, big_minus, area_start, area_end, pg2_area_tex, m2, p2]
+
+        poly_group = [_a, _b, x_intersect_dot, big_plus, big_minus, area_start, area_end, pg2_area_tex, p2]
         self.play(*[FadeOut(x) for x in poly_group])
 
         # Now sin area
@@ -439,12 +451,38 @@ class Animate(Scene):
             self.play(Write(x))
             self.wait()
         self.wait()
-        to_remove = [area_start, area_end, area_mid, sg_area_tex]
-        self.play(*[FadeOut(x) for x in to_remove])
+        self.play(ApplyWave(VGroup(sg_pa, sg_na, big_minus, big_plus)))
+        self.play(FadeOut(sg_area_tex))
+        # add pos neg
+        sg2 = an.get_graph(lambda x: np.sin(2 * x), x_range=[0, TAU], color=BLUE)
+        to_temp = [big_plus, big_minus, sg_pa, sg_na]
+        to_remove = [area_start, area_end, area_mid, sg_label]
+        self.play(*[FadeOut(x) for x in to_remove + to_temp])
+        self.play(ReplacementTransform(sin_graph, sg2))
+        p1 = an.get_area(sg2, (0, PI / 2), color=[GREEN, BLUE], opacity=0.7)
+        n1 = an.get_area(sg2, (PI / 2, PI), color=[ORANGE, PURPLE], opacity=0.7)
+        p2 = an.get_area(sg2, (PI, 1.5 * PI), color=[GREEN, BLUE], opacity=0.7)
+        n2 = an.get_area(sg2, (1.5 * PI, 2 * PI), color=[ORANGE, PURPLE], opacity=0.7)
+        bp1 = big_plus.copy().move_to(p1.get_center())
+        bp2 = big_plus.copy().move_to(p2.get_center())
+        bm1 = big_minus.copy().move_to(n1.get_center())
+        bm2 = big_minus.copy().move_to(n2.get_center())
+        pg1 = VGroup(p1, bp1)
+        pg2 = VGroup(p2, bp2)
+        ng1 = VGroup(n1, bm1)
+        ng2 = VGroup(n2, bm2)
+        self.play(FadeIn(pg1), FadeIn(pg2))
+        self.wait()
+        self.play(FadeIn(ng1), FadeIn(ng2))
+        self.wait()
+        self.play(*[FadeOut(x) for x in [pg1, pg2, ng1, ng2]])
+        sin_graph = an.get_graph(lambda x: np.sin(x), x_range=[0, TAU], color=BLUE)
+        self.play(ReplacementTransform(sg2, sin_graph))
+        self.play(*[FadeIn(x) for x in to_temp])
 
         # evil rotation hack
         rot_grp = VGroup(sin_graph, an, sg_pa, sg_na, big_minus, big_plus)
-        self.play(Rotate(rot_grp, PI / 2), FadeOut(sg_label))
+        self.play(Rotate(rot_grp, PI / 2))
         bm_op = big_minus.get_center()
         self.play(Rotate(big_minus, PI / 2))
         self.play(big_minus.animate.move_to(big_plus), big_plus.animate.move_to(bm_op))
@@ -469,12 +507,12 @@ class Animate(Scene):
             self.play(Write(x))
             self.wait()
         self.play(ShowCreationThenFadeOut(SurroundingRectangle(big_minus, color=ORANGE)))
-        self.play(y_int_tex.animate.move_to(ORIGIN))
-        self.play(ShowCreationThenFadeOut(SurroundingRectangle(y_int_tex, color=BLUE)))
+        # self.play(y_int_tex.animate.move_to(ORIGIN))
+        # self.play(ShowCreationThenFadeOut(SurroundingRectangle(y_int_tex, color=BLUE)))
         self.play(*[FadeOut(x) for x in self.mobjects])
         cya = Text("Thank you for watching!", font_size=35).set_color_by_gradient(BLUE, GREEN, GOLD)
-        cya1 = Text("Instructor: Kazi Rakibul Hasan", font_size=35).set_color_by_gradient(GOLD, ORANGE).next_to(cya,
-                                                                                                                DOWN)
-        cya2 = Text("Animation: Anwarul Bashir Shuaib", font_size=35).set_color_by_gradient(ORANGE, PURPLE).next_to(
+        cya1 = Text("Instructor: Kazi Rakibul Hasan", font_size=25).set_color_by_gradient(GOLD, ORANGE).next_to(cya,
+                                                                                                                2*DOWN)
+        cya2 = Text("Animation: Anwarul Bashir Shuaib", font_size=25).set_color_by_gradient(ORANGE, PURPLE).next_to(
             cya1, DOWN)
         self.play(Write(VGroup(cya, cya1, cya2).move_to(ORIGIN)))
