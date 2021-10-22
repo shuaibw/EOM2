@@ -260,7 +260,7 @@ class Animate(Scene):
         # Non zero error area
         axes = Axes(
             x_range=[-4, 4, 1],
-            y_range=[-2, 5, 1],
+            y_range=[-5, 12, 1],
             x_length=8,
             y_length=7,
             axis_config={
@@ -274,9 +274,9 @@ class Animate(Scene):
         )
         axes.to_edge(LEFT, buff=0.3)
         poly_graph2 = axes.get_graph(
-            lambda x: 2 / 5 * (x ** 2 - 4), [-4, 4], color=GREEN_C
+            lambda x: (x ** 2 - 4), [-4, 4], color=GREEN_C
         )
-        pg2_label = axes.get_graph_label(poly_graph2, r"f(x) = \frac{2}{5}(x^2-2)", x_val=-4, direction=UP,
+        pg2_label = axes.get_graph_label(poly_graph2, r"f(x) = (x^2-4)", x_val=-4, direction=UP,
                                          color=BLUE).scale(0.7)
         self.play(ReplacementTransform(an, axes), ReplacementTransform(sin_graph, poly_graph2), Write(pg2_label),
                   run_time=2)
@@ -316,9 +316,9 @@ class Animate(Scene):
         na = neg_area_list[-1]
         self.play(Create(na), run_time=1.5)
         self.play(Create(pa), run_time=1.5)
-        integral_area = MathTex(r'\text{Area} &= \int_0^{4}\frac{2}{5}(x^2-4)\,dx\\',
-                                r' &= \frac{2}{5}\left[\frac{x^3}{3}-4x\right]_0^{4} \\',
-                                r' &= ', r'\frac{32}{15}', font_size=35).to_corner(UR, buff=0.6)
+        integral_area = MathTex(r'\text{Area} &= \int_0^{4}(x^2-4)\,dx\\',
+                                r' &= \left[\frac{x^3}{3}-4x\right]_0^{4} \\',
+                                r' &= ', r'\frac{16}{3}', font_size=35).to_corner(UR, buff=0.6)
         for txt in integral_area:
             self.play(Write(txt))
             self.wait()
@@ -343,7 +343,7 @@ class Animate(Scene):
                     tip_shape=ArrowCircleFilledTip, stroke_width=1.3, tip_length=0.2)
         self.play(Create(area_surround))
         self.play(ShowCreationThenFadeOut(aro))
-        new_tex = MathTex(r'\text{Area} = \frac{32}{15}}', font_size=35).move_to(integral_area[0])
+        new_tex = MathTex(r'\text{Area} = \frac{16}{3}}', font_size=35).move_to(integral_area[0])
         self.play(ReplacementTransform(integral_area[0], new_tex), Uncreate(area_surround))
         self.play(*[FadeOut(i) for i in [pa_shift, new_tex]])
         _a = axes.get_area(poly_graph2, x_range=(0, 2), color=[ORANGE, PURPLE], opacity=0.7)
@@ -353,7 +353,7 @@ class Animate(Scene):
                   run_time=2)
 
         # Now explain what to do
-        find_intersect_tex = MathTex(r"\frac{2}{5}(x^2-4) &= 0\\",
+        find_intersect_tex = MathTex(r"(x^2-4) &= 0\\",
                                      r"x&=", r"+2", r",-2",
                                      font_size=35).to_corner(UR, buff=0.6)
         self.play(ReplacementTransform(pg2_label, find_intersect_tex[0]))
@@ -371,14 +371,14 @@ class Animate(Scene):
         big_minus = MathTex("-", color=BLUE, stroke_width=5).move_to(axes.c2p(0.8, -0.8))
         big_plus = MathTex("+", color=ORANGE, stroke_width=5).move_to(axes.c2p(3.5, 1.6))
         pg2_area_tex = MathTex(r"A_1 &= \int_0^2 f(x)\,dx",
-                               r"= -\frac{32}{15}\\",
+                               r"= -\frac{16}{3}\\",
                                r"A_2 &= \int_2^4 f(x)\,dx",
-                               r"=\frac{64}{15}\\",
+                               r"=\frac{32}{3}\\",
                                r"\text{Area} &=",
                                r"A_1 + A_2",
                                r"|A_1| + |A_2|\\",
-                               r"&=\frac{32}{15} + \frac{64}{15}\\",
-                               r"&=\frac{32}{5}",
+                               r"&=\frac{16}{3} + \frac{32}{3}\\",
+                               r"&=16",
                                font_size=35).to_corner(UR, buff=0.6)
         self.play(ReplacementTransform(pg2_na_brace, pg2_area_tex[0]), FadeIn(big_minus))
         self.wait()
