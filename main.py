@@ -38,7 +38,8 @@ class Animate(Scene):
             poly_func,
             color=GREEN,
             x_range=[-2, 10])
-        self.play(Create(poly_graph))
+        pgl = axes.get_graph_label(poly_graph, label='y=f(x)', direction=UR)
+        self.play(Create(poly_graph), Write(pgl))
 
         # Limit mover
         tl = ValueTracker(3)
@@ -53,7 +54,7 @@ class Animate(Scene):
         self.wait()
         self.play(Create(ll), Create(lr))
         self.wait()
-        self.play(tl.animate.set_value(1), tr.animate.set_value(6), run_time=2)
+        self.play(tl.animate.set_value(1), tr.animate.set_value(6), run_time=1.5)
         self.wait()
 
         # Area generator
@@ -68,6 +69,8 @@ class Animate(Scene):
         self.play(Write(liml), Write(limr), run_time=2)
         # itexgen = Tex(r'$\displaystyle \int', r'_a', r'^b', r'f(x)\,dx$')
         itexgen = Tex(r'$\displaystyle \int_a^b f(x)\,dx$').move_to(itexsp)
+        self.play(Flash(liml, color=BLUE, flash_radius=0.2, line_length=0.1))
+        self.play(Flash(limr, color=GREEN, flash_radius=0.2, line_length=0.1))
         self.play(ReplacementTransform(itexsp, itexgen))
         self.play(ShowCreationThenFadeOut(SurroundingRectangle(itexgen).set_stroke(BLUE, 2.5)), run_time=2)
         self.play(*[FadeOut(x) for x in [liml, limr, area, dl, dr, ll, lr, itexgen]])
@@ -89,7 +92,10 @@ class Animate(Scene):
         )
         an.to_edge(LEFT, buff=1)
         sin_graph = an.get_graph(lambda x: np.sin(x), x_range=[0, TAU], color=BLUE)
-        self.play(ReplacementTransform(axes_no_num, an), ReplacementTransform(poly_graph, sin_graph), run_time=2)
+        sgl = an.get_graph_label(sin_graph, 'y=\sin(x)', x_val=0.5, color=GREEN).shift(2 * UP).scale(0.7)
+        self.play(ReplacementTransform(axes_no_num, an), ReplacementTransform(poly_graph, sin_graph),
+                  ReplacementTransform(pgl, sgl),
+                  run_time=2)
         area_start = Tex('$0$', font_size=25).next_to(an.c2p(-0.2, 0), DOWN)
         area_end = Tex('$2\pi$', font_size=25).next_to(an.c2p(TAU, 0), DOWN)
         # area_start = an.get_graph_label(sin_graph, "x=0", x_val=0, direction=UL, color=WHITE)
@@ -134,6 +140,7 @@ class Animate(Scene):
         for txt in integral_area:
             self.play(Write(txt))
             self.wait()
+        self.play(ApplyWave(VGroup(pa, na), time_width=0.15), run_time=2)
         for i in range(len(dx_list) - 2, -1, -1):
             new_pa = pos_area_list[i]
             new_na = neg_area_list[i]
@@ -167,9 +174,7 @@ class Animate(Scene):
         self.play(ReplacementTransform(dx_brace_text, dx_pos_tex))
         why_pos = MathTex(r'dx = \frac{2\pi-0}{n}').scale(0.8).next_to(dx_brace, DOWN, buff=0.1)
         dgtr = SurroundingRectangle(dx_pos_tex, color=GREEN)
-        self.play(Create(dgtr))
-        self.wait()
-        self.play(Uncreate(dgtr))
+        self.play(ShowCreationThenFadeOut(dgtr))
         self.play(Transform(dx_pos_tex, why_pos))
         num_of_rect = MathTex(r'n=\text{No. of rectangles}').scale(0.65).next_to(why_pos, RIGHT)
         self.play(Write(num_of_rect))
@@ -278,7 +283,8 @@ class Animate(Scene):
         )
         pg2_label = axes.get_graph_label(poly_graph2, r"f(x) = (x^2-4)", x_val=-4, direction=UP,
                                          color=BLUE).scale(0.7)
-        self.play(ReplacementTransform(an, axes), ReplacementTransform(sin_graph, poly_graph2), Write(pg2_label),
+        self.play(ReplacementTransform(an, axes), ReplacementTransform(sin_graph, poly_graph2),
+                  ReplacementTransform(sgl, pg2_label),
                   run_time=2)
         area_start = MathTex('0', font_size=25).next_to(axes.c2p(-0.2, 0), DOWN)
         area_end = MathTex('4', font_size=25).next_to(axes.c2p(4, 0), DOWN)
@@ -343,6 +349,7 @@ class Animate(Scene):
                     tip_shape=ArrowCircleFilledTip, stroke_width=1.3, tip_length=0.2)
         self.play(Create(area_surround))
         self.play(ShowCreationThenFadeOut(aro))
+        self.wait()
         new_tex = MathTex(r'\text{Area} = \frac{16}{3}}', font_size=35).move_to(integral_area[0])
         self.play(ReplacementTransform(integral_area[0], new_tex), Uncreate(area_surround))
         self.play(*[FadeOut(i) for i in [pa_shift, new_tex]])
@@ -361,15 +368,16 @@ class Animate(Scene):
             self.play(Write(x))
         m2 = MathTex(r'-2', font_size=25).next_to(axes.c2p(-2, 0), DOWN)
         p2 = MathTex(r'2', font_size=25).next_to(axes.c2p(2, 0), DOWN)
-        self.play(Write(m2), Write(p2))
+        self.play(TransformFromCopy(find_intersect_tex[3], m2),
+                  TransformFromCopy(find_intersect_tex[2], p2))
         intersect_rect = SurroundingRectangle(find_intersect_tex[2], color=BLUE)
         self.play(Create(intersect_rect))
         x_intersect_dot = Dot(point=axes.c2p(2, 0), color=RED)
         self.play(ReplacementTransform(intersect_rect, x_intersect_dot), FadeOut(find_intersect_tex), FadeOut(m2))
         pg2_na_brace = Brace(na, direction=UP, color=PURPLE)
         self.play(FadeIn(pg2_na_brace))
-        big_minus = MathTex("-", color=BLUE, stroke_width=5).move_to(axes.c2p(0.8, -0.8))
-        big_plus = MathTex("+", color=ORANGE, stroke_width=5).move_to(axes.c2p(3.5, 1.6))
+        big_minus = MathTex("-", color=BLUE, stroke_width=5).move_to(axes.c2p(0.8, -1.8))
+        big_plus = MathTex("+", color=ORANGE, stroke_width=5).move_to(axes.c2p(3.2, 2.6))
         pg2_area_tex = MathTex(r"A_1 &= \int_0^2 f(x)\,dx",
                                r"= -\frac{16}{3}\\",
                                r"A_2 &= \int_2^4 f(x)\,dx",
@@ -449,7 +457,7 @@ class Animate(Scene):
         self.play(Write(sg_area_tex[3]))
         for x in sg_area_tex[3:]:
             self.play(Write(x))
-            self.wait()
+            self.wait(0.3)
         self.wait()
         self.play(ApplyWave(VGroup(sg_pa, sg_na, big_minus, big_plus)))
         self.play(FadeOut(sg_area_tex))
@@ -491,18 +499,28 @@ class Animate(Scene):
         x_int_tex = MathTex(r'\text{Area} = ', r'\int_a^b f(x)\,dx').scale(0.8).next_to(x_fn_tex, DOWN)
         y_fn_tex = MathTex(r'x=f(y)').scale(0.8).move_to(x_fn_tex)
         y_int_tex = MathTex(r'\text{Area} = ', r'\int_a^b f(y)\,dy').scale(0.8).move_to(x_int_tex)
+        atex = MathTex(r'y=a', font_size=25).move_to(an.c2p(-0.2, -0.6))
+        btex = MathTex(r'y=b', font_size=25).move_to(an.c2p(2 * PI, -0.6))
         self.play(Write(x_fn_tex))
         self.wait()
-        self.play(Write(x_int_tex))
-        self.play(ReplacementTransform(x_fn_tex, y_fn_tex))
+        self.play(*[Write(x) for x in [atex, btex, x_int_tex]])
+        self.play(ReplacementTransform(x_fn_tex, y_fn_tex),
+                  ShowCreationThenFadeOut(SurroundingRectangle(y_fn_tex, color=BLUE, stroke_width=1.2)))
         self.wait()
-        self.play(ReplacementTransform(x_int_tex, y_int_tex))
+        self.play(ReplacementTransform(x_int_tex, y_int_tex),
+                  ShowCreationThenFadeOut(SurroundingRectangle(y_int_tex, color=BLUE, stroke_width=1.2)))
         x_neg = MathTex(r'x<0\\', r'\Rightarrow f(y)<0\\', r'\Rightarrow dA<0').move_to(an.c2p(2, 3)).scale(0.8)
         x_pos = MathTex(r'x>0\\', r'\Rightarrow f(y)>0\\', r'\Rightarrow dA>0').move_to(an.c2p(5, -3)).scale(0.8)
+        nbrace = Brace(sg_pa, RIGHT).set_color_by_gradient(GREEN, BLUE)
+        pbrace = Brace(sg_na, LEFT).set_color_by_gradient(PURPLE, ORANGE)
+        self.play(FadeIn(pbrace))
+        self.wait()
         for x in x_pos:
             self.play(Write(x))
             self.wait()
         self.play(ShowCreationThenFadeOut(SurroundingRectangle(big_plus, color=BLUE)))
+        self.play(ReplacementTransform(pbrace, nbrace))
+        self.wait()
         for x in x_neg:
             self.play(Write(x))
             self.wait()
@@ -510,9 +528,9 @@ class Animate(Scene):
         # self.play(y_int_tex.animate.move_to(ORIGIN))
         # self.play(ShowCreationThenFadeOut(SurroundingRectangle(y_int_tex, color=BLUE)))
         self.play(*[FadeOut(x) for x in self.mobjects])
-        cya = Text("Thank you for watching!", font_size=35).set_color_by_gradient(BLUE, GREEN, GOLD)
-        cya1 = Text("Instructor: Kazi Rakibul Hasan", font_size=25).set_color_by_gradient(GOLD, ORANGE).next_to(cya,
-                                                                                                                2*DOWN)
-        cya2 = Text("Animation: Anwarul Bashir Shuaib", font_size=25).set_color_by_gradient(ORANGE, PURPLE).next_to(
+        cya = Text("Thank you for watching!", font_size=35).set_color_by_gradient(BLUE, GREEN, GOLD).move_to(ORIGIN)
+        cya1 = Text("Instructor: Kazi Rakibul Hasan", font_size=21).set_color_by_gradient(GOLD, ORANGE).next_to(cya,
+                                                                                                                3 * DOWN)
+        cya2 = Text("Animation: Anwarul Bashir Shuaib", font_size=21).set_color_by_gradient(ORANGE, PURPLE).next_to(
             cya1, DOWN)
-        self.play(Write(VGroup(cya, cya1, cya2).move_to(ORIGIN)))
+        self.play(Write(VGroup(cya, cya1, cya2)))
